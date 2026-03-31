@@ -4,14 +4,23 @@ vars:
   Name: "bakbot"
   Version: "0.0.1"
   Commit:
-    sh: git rev-parse --short HEAD
+    sh: git rev-parse HEAD
   Date:
     sh: date -u +%Y-%m-%dT%H:%M:%SZ
-  Flags: "-X github.com/mehdikhody/bakbot/internal/version.Version={{.Version}} -X github.com/mehdikhody/bakbot/internal/version.Commit={{.Commit}} -X github.com/mehdikhody/bakbot/internal/version.Date={{.Date}}"
+  Flags: |-
+    -X github.com/mehdikhody/bakbot/internal/version.Version={{.Version}}
+    -X github.com/mehdikhody/bakbot/internal/version.Commit={{.Commit}}
+    -X github.com/mehdikhody/bakbot/internal/version.Date={{.Date}}
 
 tasks:
+  clean:
+    desc: Clean build directory
+    cmds:
+      - rm -rf build/
+
   build:
     desc: Build binaries
+    deps: [clean]
     cmds:
       - cmd: go build -ldflags "{{.Flags}}" -o build/{{.Name}}-linux-amd64 cmd/{{.Name}}/main.go
         env:
