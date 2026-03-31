@@ -1,0 +1,27 @@
+version: '3'
+
+vars:
+  Name: "bakbot"
+  Version: "0.0.1"
+  Commit:
+    sh: git rev-parse --short HEAD
+  Date:
+    sh: date -u +%Y-%m-%dT%H:%M:%SZ
+  Flags: "-X github.com/mehdikhody/bakbot/internal/version.Version={{.Version}} -X github.com/mehdikhody/bakbot/internal/version.Commit={{.Commit}} -X github.com/mehdikhody/bakbot/internal/version.Date={{.Date}}"
+
+tasks:
+  build:
+    desc: Build binaries
+    cmds:
+      - cmd: go build -ldflags "{{.Flags}}" -o build/{{.Name}}-linux-amd64 cmd/{{.Name}}/main.go
+        env:
+          GOOS: linux
+          GOARCH: amd64
+      - cmd: go build -ldflags "{{.Flags}}" -o build/{{.Name}}-linux-arm64 cmd/{{.Name}}/main.go
+        env:
+          GOOS: linux
+          GOARCH: arm64
+      - cmd: go build -ldflags "{{.Flags}}" -o build/{{.Name}}-windows-amd64.exe cmd/{{.Name}}/main.go
+        env:
+          GOOS: windows
+          GOARCH: amd64
