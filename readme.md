@@ -13,6 +13,41 @@ On startup, Bakbot immediately sends a backup of the specified file to the confi
 
 ## Installation
 
+### Quick install (Linux, recommended)
+
+The installer script automatically downloads the latest release for your architecture, walks you through configuration interactively, and sets up a systemd service so bakbot runs in the background and restarts on boot.
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/mehdikhody/bakbot/master/install.sh)
+```
+
+The script will prompt you for:
+
+- **Telegram bot token** — from [@BotFather](https://t.me/BotFather)
+- **Chat ID** — the user or group that receives the backups
+- **File path** — the file or directory to back up
+- **Schedule** — choose from presets (hourly / daily / weekly / monthly) or enter a custom cron expression
+- **Proxy URL** — optional, leave blank to skip
+
+Once done, bakbot starts immediately and is registered as a systemd service. Your settings are saved to `/etc/bakbot/config` (readable only by root).
+
+#### Managing the service
+
+```bash
+systemctl status  bakbot      # check if it's running
+systemctl restart bakbot      # apply config changes
+systemctl stop    bakbot      # stop the bot
+systemctl disable bakbot      # remove from startup
+journalctl -u     bakbot -f   # follow live logs
+```
+
+To change settings after installation, edit the config file and restart:
+
+```bash
+nano /etc/bakbot/config
+systemctl restart bakbot
+```
+
 ### From source
 
 ```bash
