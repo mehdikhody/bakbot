@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: write
-  packages: write
 
 env:
   APP_NAME: bakbot
@@ -19,7 +18,6 @@ jobs:
 
     strategy:
       matrix:
-        goos: [linux, windows, darwin]
         goarch: [amd64, arm64]
 
     steps:
@@ -46,7 +44,7 @@ jobs:
 
       - name: Build binary
         env:
-          GOOS: ${{ matrix.goos }}
+          GOOS: linux
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
         run: |
@@ -56,31 +54,31 @@ jobs:
           COMMIT=${GITHUB_SHA}
           DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-          BIN_NAME=${{ env.APP_NAME }}
-          if [ "${{ matrix.goos }}" = "windows" ]; then
-            BIN_NAME="${BIN_NAME}.exe"
-          fi
+          # Print Go env for debugging
+          go env
+
+          # Find where Go files are
+          echo "--- Go files found in repo ---"
+          find . -name "*.go" | head -20
+          echo "------------------------------"
+
+          ENTRY=$(find . -name "main.go" | head -1 | xargs dirname)
+          echo "Entry point: ${ENTRY}"
 
           go build \
             -ldflags "-s -w \
               -X github.com/mehdikhody/bakbot/internal/version.Version=${VERSION} \
               -X github.com/mehdikhody/bakbot/internal/version.Commit=${COMMIT} \
               -X github.com/mehdikhody/bakbot/internal/version.Date=${DATE}" \
-            -o build/${BIN_NAME} .
+            -o build/${{ env.APP_NAME }} ${ENTRY}
 
       - name: Prepare package
         run: |
           VERSION=${{ steps.version.outputs.VERSION }}
-          PKG_NAME="${{ env.APP_NAME }}-${{ matrix.goos }}-${{ matrix.goarch }}-${VERSION}"
+          PKG_NAME="${{ env.APP_NAME }}-linux-${{ matrix.goarch }}-${VERSION}"
 
           mkdir -p package/${PKG_NAME}
-
-          BIN_NAME=${{ env.APP_NAME }}
-          if [ "${{ matrix.goos }}" = "windows" ]; then
-            BIN_NAME="${BIN_NAME}.exe"
-          fi
-
-          cp build/${BIN_NAME} package/${PKG_NAME}/
+          cp build/${{ env.APP_NAME }} package/${PKG_NAME}/
           cp README.md package/${PKG_NAME}/ || true
 
           cd package
