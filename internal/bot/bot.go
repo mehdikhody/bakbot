@@ -22,6 +22,7 @@ type Options struct {
 	Token    string
 	ChatId   int64
 	Schedule string
+	Send     bool
 	Proxy    string
 }
 
@@ -100,42 +101,48 @@ func (b *Bot) SendBackup() error {
 }
 
 func (b *Bot) Start() error {
-	log.Println("Testing by sending the first backup...")
-	err := b.SendBackup()
-	if err != nil {
-		return err
-	}
 
-	c := cron.New(cron.WithSeconds())
-	_, err = c.AddFunc(b.options.Schedule, func() {
-		log.Println("Schedule triggered")
+	if b.options.Send {
+		log.Println("Sending the first backup...")
 		err := b.SendBackup()
 		if err != nil {
-			log.Println(err)
+			return err
 		}
-	})
-
-	if err != nil {
-		return err
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
+	if b.options.Schedule != "" {
+		log.Println("Scheduling ...")
+		c := cron.New(cron.WithSeconds())
+		_, err := c.AddFunc(b.options.Schedule, func() {
+			log.Println("Schedule triggered")
+			err := b.SendBackup()
+			if err != nil {
+				log.Println(err)
+			}
+		})
 
-	c.Start()
-	log.Println("Bot is now running.  Press CTRL-C to exit.")
+		if err != nil {
+			return err
+		}
 
-	select {
-	case <-ctx.Done():
-	case <-b.stopChan:
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		defer stop()
+
+		c.Start()
+		log.Println("Bot is now running.  Press CTRL-C to exit.")
+
+		select {
+		case <-ctx.Done():
+		case <-b.stopChan:
+		}
+
+		c.Stop()
+		if err := utils.FileRemove("*.zip"); err != nil {
+			log.Println("Error cleaning zip files:", err)
+		}
 	}
 
-	c.Stop()
-	if err := utils.FileRemove("*.zip"); err != nil {
-		log.Println("Error cleaning zip files:", err)
-	}
-
-	log.Println("Bot shutdown complete.")
+	log.Println("Complete.")
 	return nil
 }
 

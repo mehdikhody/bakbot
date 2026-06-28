@@ -50,7 +50,8 @@ func main() {
 	cmd.Flags().StringVarP(&Options.Filename, "file", "f", "", "(Required) file to backup")
 	cmd.Flags().Int64VarP(&Options.ChatId, "chatId", "c", 0, "(Required) telegram target chatId")
 	cmd.Flags().StringVarP(&Options.Proxy, "proxy", "p", "", "proxy url")
-	cmd.Flags().StringVarP(&Options.Schedule, "schedule", "s", "@daily", "cron schedule")
+	cmd.Flags().StringVarP(&Options.Schedule, "schedule", "s", "", "cron schedule")
+	cmd.Flags().BoolVarP(&Options.Send, "send", "s", false, "just send the backup file.")
 	cmd.Flags().BoolVarP(&ShowVersion, "version", "v", false, "show version")
 
 	cmd.SetHelpCommand(&cobra.Command{Hidden: true})

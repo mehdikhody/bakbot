@@ -64,14 +64,15 @@ bakbot [flags]
 
 ### Flags
 
-| Flag         | Short | Required | Description                       |
-| ------------ | ----- | -------- | --------------------------------- |
-| `--token`    | `-t`  | ✅       | Telegram bot token                |
-| `--file`     | `-f`  | ✅       | Path to the file to back up       |
-| `--chatId`   | `-c`  | ✅       | Telegram target chat ID           |
-| `--schedule` | `-s`  |          | Cron schedule (default: `@daily`) |
-| `--proxy`    | `-p`  |          | HTTP proxy URL                    |
-| `--version`  | `-v`  |          | Print version information         |
+| Flag         | Short | Required | Description                 |
+|--------------|-------| -------- |-----------------------------|
+| `--token`    | `-t`  | ✅       | Telegram bot token          |
+| `--file`     | `-f`  | ✅       | Path to the file to back up |
+| `--chatId`   | `-c`  | ✅       | Telegram target chat ID     |
+| `--schedule` | `-s`  |          | Cron schedule               |
+| `--send`     |       |          | Send backup immediately     |
+| `--proxy`    | `-p`  |          | HTTP proxy URL              |
+| `--version`  | `-v`  |          | Print version information   |
 
 ### Example
 
@@ -80,7 +81,8 @@ bakbot \
   --token "123456:ABC-DEF..." \
   --file /var/lib/myapp/database.db \
   --chatId 987654321 \
-  --schedule "@daily"
+  --schedule "@daily" \
+  --send
 ```
 
 This will immediately send a backup and then repeat every day at midnight.
