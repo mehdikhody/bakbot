@@ -26,7 +26,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup golang
+      - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.26.1"
@@ -41,42 +41,43 @@ jobs:
           fi
 
       - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
         run: |
           mkdir -p build
-          
+
           VERSION=${{ steps.version.outputs.VERSION }}
           COMMIT=${GITHUB_SHA}
           DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          
+
           BIN_NAME=${{ env.APP_NAME }}
-          if [ "${{ matrix.os }}" = "windows" ]; then
+          if [ "${{ matrix.goos }}" = "windows" ]; then
             BIN_NAME="${BIN_NAME}.exe"
           fi
-          
-          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }\
-          go build -ldflags "\
-            -s -w \
-            -X github.com/mehdikhody/bakbot/internal/version.Version=${VERSION} \
-            -X github.com/mehdikhody/bakbot/internal/version.Commit=${COMMIT} \
-            -X github.com/mehdikhody/bakbot/internal/version.Date=${DATE} \
-          " \ 
-          -o build/${BIN_NAME} cmd/bakbot/main.go
+
+          go build \
+            -ldflags "-s -w \
+              -X github.com/mehdikhody/bakbot/internal/version.Version=${VERSION} \
+              -X github.com/mehdikhody/bakbot/internal/version.Commit=${COMMIT} \
+              -X github.com/mehdikhody/bakbot/internal/version.Date=${DATE}" \
+            -o build/${BIN_NAME} .
 
       - name: Prepare package
         run: |
           VERSION=${{ steps.version.outputs.VERSION }}
-          PKG_NAME="${{ env.APP_NAME }}-${{ matrix.os }}-${{ matrix.arch }}-${VERSION}"
-          
+          PKG_NAME="${{ env.APP_NAME }}-${{ matrix.goos }}-${{ matrix.goarch }}-${VERSION}"
+
           mkdir -p package/${PKG_NAME}
-          
+
           BIN_NAME=${{ env.APP_NAME }}
-          if [ "${{ matrix.os }}" = "windows" ]; then
+          if [ "${{ matrix.goos }}" = "windows" ]; then
             BIN_NAME="${BIN_NAME}.exe"
           fi
 
           cp build/${BIN_NAME} package/${PKG_NAME}/
           cp README.md package/${PKG_NAME}/ || true
-          
+
           cd package
           zip -r ${PKG_NAME}.zip ${PKG_NAME}
 
